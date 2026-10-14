@@ -2,4 +2,99 @@
 import { useWorkspace } from "@/lib/workspace";
 import { PageHeading, EmptyState, EvidenceNotice } from "@/components/common";
 import { ProjectMap } from "@/components/project-map";
-export default function MapPage(){const {active,setGeography}=useWorkspace();return <><PageHeading eyebrow="GEOSPATIAL CONTEXT" title="Put the proposal in context." description={active?`${active.result.input.proposal.title} · manually editable project geometry`:"Explore the geography of your infrastructure proposal."}/>{!active?<EmptyState/>:<><EvidenceNotice basis={active.result.input.assumptionBasis}/><div className="map-layout"><ProjectMap key={active.id} coordinates={active.coordinates} route={active.route} onChange={setGeography}/><aside className="card map-info"><h3>Project location</h3><p>{active.result.input.proposal.location}<br/><strong>{active.result.quantity} {active.result.unit}{active.result.quantity!==1?"s":""}</strong> supplied to the cost model.</p><div className="coordinate-grid">{(["Latitude","Longitude"] as const).map((label,i)=><label className="field" key={label}><span>{label}</span><input aria-label={label} type="number" step="0.000001" min={i===0?-85:-180} max={i===0?85:180} value={active.coordinates[i]} onChange={e=>{const n=Number(e.target.value);if(!e.target.value||!Number.isFinite(n)||Math.abs(n)>(i===0?85:180))return;const p:[number,number]=[...active.coordinates];p[i]=n;setGeography(p,active.route);}}/></label>)}</div><div className="map-legend"><h3>Map legend</h3><span><i className="point"/>Editable project point</span><span><i/>Proposed illustrative corridor</span><span><i style={{background:"#547bc1"}}/>Alternative treatment sketch</span><span><i className="dashed"/>Baseline corridor reference</span></div><div className="map-note">The starting basemap is Los Altos, California, for demonstration. Proposal text is not automatically geocoded. The corridor is a sketch, not a surveyed route; it does not establish the entered mileage or predict before/after outcomes. Map changes do not change cost-model scope.</div></aside></div></>}</>;}
+export default function MapPage() {
+  const { active, setGeography } = useWorkspace();
+  return (
+    <>
+      <PageHeading
+        eyebrow="GEOSPATIAL CONTEXT"
+        title="Put the proposal in context."
+        description={
+          active
+            ? `${active.result.input.proposal.title} · manually editable project geometry`
+            : "Explore the geography of your infrastructure proposal."
+        }
+      />
+      {!active ? (
+        <EmptyState />
+      ) : (
+        <>
+          <EvidenceNotice basis={active.result.input.assumptionBasis} />
+          <div className="map-layout">
+            <ProjectMap
+              key={active.id}
+              coordinates={active.coordinates}
+              route={active.route}
+              onChange={setGeography}
+            />
+            <aside className="card map-info">
+              <h3>Project location</h3>
+              <p>
+                {active.result.input.proposal.location}
+                <br />
+                <strong>
+                  {active.result.quantity} {active.result.unit}
+                  {active.result.quantity !== 1 ? "s" : ""}
+                </strong>{" "}
+                supplied to the cost model.
+              </p>
+              <div className="coordinate-grid">
+                {(["Latitude", "Longitude"] as const).map((label, i) => (
+                  <label className="field" key={label}>
+                    <span>{label}</span>
+                    <input
+                      aria-label={label}
+                      type="number"
+                      step="0.000001"
+                      min={i === 0 ? -85 : -180}
+                      max={i === 0 ? 85 : 180}
+                      value={active.coordinates[i]}
+                      onChange={(e) => {
+                        const n = Number(e.target.value);
+                        if (
+                          !e.target.value ||
+                          !Number.isFinite(n) ||
+                          Math.abs(n) > (i === 0 ? 85 : 180)
+                        )
+                          return;
+                        const p: [number, number] = [...active.coordinates];
+                        p[i] = n;
+                        setGeography(p, active.route);
+                      }}
+                    />
+                  </label>
+                ))}
+              </div>
+              <div className="map-legend">
+                <h3>Map legend</h3>
+                <span>
+                  <i className="point" />
+                  Editable project point
+                </span>
+                <span>
+                  <i />
+                  Proposed illustrative corridor
+                </span>
+                <span>
+                  <i style={{ background: "#547bc1" }} />
+                  Alternative treatment sketch
+                </span>
+                <span>
+                  <i className="dashed" />
+                  Baseline corridor reference
+                </span>
+              </div>
+              <div className="map-note">
+                The starting basemap is Los Altos, California, for
+                demonstration. Proposal text is not automatically geocoded. The
+                corridor is a sketch, not a surveyed route; it does not
+                establish the entered mileage or predict before/after outcomes.
+                Map changes do not change cost-model scope.
+              </div>
+            </aside>
+          </div>
+        </>
+      )}
+    </>
+  );
+}

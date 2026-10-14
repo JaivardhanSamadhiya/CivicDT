@@ -1,8 +1,12 @@
 # CivicDT — Civic Digital Twin
 
-An evidence-aware infrastructure planning workbench. CivicDT turns a proposal into an editable, source-linked project record, compares three scenarios with transparent cost arithmetic, and exports a neutral decision brief. The default demonstration needs no API key.
+An evidence-aware climate infrastructure planning workbench. CivicDT helps youth teams, communities, and planners examine active-travel and transit proposals before advocating a project. It turns a proposal into an editable, source-linked project record, compares three scenarios with transparent cost arithmetic, and exports a neutral decision brief. The default demonstration needs no API key.
 
 **This is an illustrative decision-support prototype, not a calibrated city digital twin or an engineering estimate.** The application does not forecast travel time, ridership, crashes, health, crime, or causal policy effects. All built-in cost assumptions are explicitly illustrative USD values.
+
+The Youth for Earth (Y4E) continuation focuses on the practical question: **what would it take to turn a climate-friendly transportation idea into a locally testable proposal?** The intended climate pathway is a change from motor-vehicle travel toward lower-emission travel when a suitable project and supporting conditions actually change behavior. Infrastructure alone does not establish that change. The prototype makes the required local evidence and uncertainty visible. See the [human-editable Y4E pitch and pilot plan](docs/Y4E_PITCH.md).
+
+An optional **Climate evidence** worksheet starts with unknown annual avoided vehicle miles and an unknown emissions factor. Supply activity separately from project length and explicitly choose a sourced factor to calculate conditional **gross avoided tailpipe CO₂**. The worksheet is not an uptake forecast, causal finding, or net lifecycle estimate. Its labeled thought experiment uses 10,000 hypothetical avoided vehicle miles and the approximate EPA 400 g/mile gasoline benchmark to yield about 4 metric tonnes/year. No local travel reduction is implied. See [CLIMATE_EVIDENCE.md](docs/CLIMATE_EVIDENCE.md).
 
 ## Run locally
 
@@ -30,6 +34,7 @@ The application uses Next.js App Router, TypeScript, Tailwind CSS, shadcn/ui-sty
 4. Review the unit costs, design percentage, contingency, annual maintenance, sensitivity range, and time horizon. Accept the illustrative assumptions or supply your own values.
 5. Execute the analysis. Compare the baseline, proposed protected bike lane, and quick-build alternative. Change an assumption to recalculate.
 6. Review the illustrative map and export the decision brief as a PDF.
+7. Optionally open **Climate evidence**, supply independent activity/factor inputs or explicitly load the hypothetical example, and save the worksheet to include its assumptions and limitations in the PDF appendix.
 
 The authored examples cover a hypothetical **1.5-mile protected bike lane**, a **2-mile bus-priority corridor**, and **4 pedestrian crossings** in Demo City. They are examples, not real city projects. The bike lane is the primary demonstration; the other two use the same cost-only arithmetic with intervention-specific qualitative tradeoffs.
 
@@ -74,6 +79,8 @@ npm run test:e2e
 
 The Playwright configuration starts the application for browser tests. CI installs Chromium and its system dependencies, then runs the same checks. Unit and integration tests cover extraction/validation, missing data, cost math, comparisons, sensitivity, reports, invalid uploads, and provider fallback. Browser tests exercise the main demo flow. Check the execution summary or CI run for measured results; this README does not substitute planned coverage for a passing run.
 
+Provider integration is covered with mocked responses/failures. No credentialed external AI call or paid model execution is claimed in these verification results.
+
 ## Deploy
 
 Deploy to a Node-capable Next.js host, such as a managed Next.js service or a Node server. Install with `npm ci` and build with `npm run build`. A managed Next.js host can use its standard detected configuration. For a container or server that requires an external bind, run `npx next start --hostname 0.0.0.0` and set the host's `PORT` environment variable; `npm start` binds to loopback for local use. Configure the normal HTTPS/reverse proxy for a self-hosted deployment. This MVP requires server routes and is not a static export. Optional provider credentials must be configured as server environment variables. No secrets are needed for demonstration mode. PDF parsing/report generation require the Node runtime.
@@ -85,10 +92,14 @@ Deploy to a Node-capable Next.js host, such as a managed Next.js service or a No
 - [Provenance](docs/PROVENANCE.md): new work, prior conceptual reference, and pre-existing dependencies/assets.
 - [90-second demo script](docs/DEMO_SCRIPT.md): a factual, reproducible presentation.
 - [Initial state](docs/INITIAL_STATE.md): repository inspection and implementation plan.
+- [Y4E pitch and pilot plan](docs/Y4E_PITCH.md): problem, solution, research, prototype, impact, feasibility, and evidence still needed.
+- [Climate evidence](docs/CLIMATE_EVIDENCE.md): sourced factor scope, conditional conversion, and proposed local measurement plan.
 
-## EvoHacks provenance
+## Creation history and competition provenance
 
-This repository was initialized as a new implementation on October 11, 2026, America/Los_Angeles. The old LosAltosHacks2026 repository was inspected as a conceptual reference only; no old application components, code, assets, or Git history were imported. New work and third-party dependencies are recorded separately in [PROVENANCE.md](docs/PROVENANCE.md). The October 10–11 eligibility window is supplied by the project brief; the record does not independently certify organizer rules or permission to use third-party materials.
+This repository was initialized as a new implementation on October 11, 2026, America/Los_Angeles. The old LosAltosHacks2026 repository was inspected as a conceptual reference only; no old application components, code, assets, or Git history were imported. Two foundation commits were pushed during October 11; further UI/backend/documentation drafts existed uncommitted when that session was interrupted. Work resumed October 13 and continued October 14 on the `y4e-climate` continuation branch. **October 13–14 work is outside the original October 10–11 EvoHacks window and must not be represented as event-created.** Uncommitted October 11 drafts are disclosed separately from the committed event-window snapshot. See [PROVENANCE.md](docs/PROVENANCE.md) for the exact boundary.
+
+The [official Y4E page](https://www.svyouthclimateaction.org/youth-for-earth-y4e-hackathon) includes an AI-use policy that raises concerns about generative AI and explicitly approves spelling/grammar tools. This AI-assisted prototype and working pitch outline require organizer clarification before any eligibility claim. The documentation does not assert that AI coding or AI-written pitches are permitted; the human team should revise the presentation in its own voice and disclose the assistance used. This is a submission-policy limitation, separate from completing and testing the application.
 
 ## Limits and follow-up
 

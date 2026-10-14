@@ -3,7 +3,10 @@ import { getExtractionProvider } from "../src/lib/ai";
 import { extractDeterministic, extractProposal } from "../src/lib/extraction";
 import { examples } from "../src/lib/examples";
 
-afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+});
 
 describe("server extraction provider", () => {
   it("makes no calls in demo mode even when a key happens to exist", async () => {
@@ -28,8 +31,28 @@ describe("server extraction provider", () => {
     vi.stubEnv("AI_PROVIDER", "openai");
     vi.stubEnv("OPENAI_API_KEY", "fake-test-key");
     vi.stubEnv("OPENAI_MODEL", "test-model");
-    const { title: _title, missing: _missing, sourceText: _sourceText, ...facts } = extractDeterministic(examples[0].text);
-    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: JSON.stringify(facts) }] }] }), { status: 200 }));
+    const {
+      title: _title,
+      missing: _missing,
+      sourceText: _sourceText,
+      ...facts
+    } = extractDeterministic(examples[0].text);
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            status: "completed",
+            output: [
+              {
+                type: "message",
+                content: [{ type: "output_text", text: JSON.stringify(facts) }],
+              },
+            ],
+          }),
+          { status: 200 },
+        ),
+      );
     vi.stubGlobal("fetch", fetch);
     const result = await extractProposal(examples[0].text);
     expect(result.mode).toBe("ai");
@@ -45,26 +68,50 @@ describe("server extraction provider", () => {
     expect(JSON.stringify(result)).not.toContain("fake-test-key");
   });
 
-  it.each([401, 429, 500])("returns a safe fallback for HTTP %s without revealing provider details", async status => {
-    vi.stubEnv("AI_PROVIDER", "openai");
-    vi.stubEnv("OPENAI_API_KEY", "private-test-key");
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("sensitive provider diagnostics", { status })));
-    const result = await extractProposal(examples[0].text);
-    expect(result.mode).toBe("demo");
-    expect(result.warning).toContain("unavailable");
-    expect(JSON.stringify(result)).not.toMatch(/sensitive|private-test-key/);
-  });
+  it.each([401, 429, 500])(
+    "returns a safe fallback for HTTP %s without revealing provider details",
+    async (status) => {
+      vi.stubEnv("AI_PROVIDER", "openai");
+      vi.stubEnv("OPENAI_API_KEY", "private-test-key");
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response("sensitive provider diagnostics", { status }),
+          ),
+      );
+      const result = await extractProposal(examples[0].text);
+      expect(result.mode).toBe("demo");
+      expect(result.warning).toContain("unavailable");
+      expect(JSON.stringify(result)).not.toMatch(/sensitive|private-test-key/);
+    },
+  );
 
   it("falls back on refusal, malformed and incomplete provider output", async () => {
     vi.stubEnv("AI_PROVIDER", "openai");
     vi.stubEnv("OPENAI_API_KEY", "fake-test-key");
     const bodies = [
       { status: "incomplete", output: [] },
-      { status: "completed", output: [{ type: "message", content: [{ type: "refusal" }] }] },
-      { status: "completed", output: [{ type: "message", content: [{ type: "output_text", text: "invalid JSON" }] }] },
+      {
+        status: "completed",
+        output: [{ type: "message", content: [{ type: "refusal" }] }],
+      },
+      {
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            content: [{ type: "output_text", text: "invalid JSON" }],
+          },
+        ],
+      },
     ];
     for (const body of bodies) {
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body))));
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(new Response(JSON.stringify(body))),
+      );
       expect((await extractProposal(examples[0].text)).mode).toBe("demo");
     }
   });

@@ -4,11 +4,19 @@ import { PDFParse } from "pdf-parse";
 import { generateDecisionBrief, decisionBriefText } from "../src/lib/report";
 import { analyze } from "../src/lib/engine";
 import { exampleInput } from "../src/lib/examples";
+import {
+  climateThoughtExperiment,
+  emptyClimateInput,
+} from "../src/lib/climate";
 import { POST } from "../src/app/api/report/route";
 
 async function pdfText(bytes: Uint8Array) {
   const parser = new PDFParse({ data: bytes });
-  try { return (await parser.getText()).text; } finally { await parser.destroy(); }
+  try {
+    return (await parser.getText()).text.replace(/\s+/g, " ");
+  } finally {
+    await parser.destroy();
+  }
 }
 
 describe("decision briefs", () => {
@@ -32,14 +40,23 @@ describe("decision briefs", () => {
     expect(text).toContain("not statistical confidence intervals");
   });
 
-  it.each(["bus-priority", "pedestrian"] as const)("generates consistent %s example reports", async type => {
-    const input = exampleInput(type);
-    const result = analyze(input);
-    const text = await pdfText(await generateDecisionBrief(input));
-    expect(text).toContain(input.proposal.title);
-    expect(text).toContain(new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(result.scenarios[1].capitalCost));
-    expect(text).toContain("No observed city statistics");
-  });
+  it.each(["bus-priority", "pedestrian"] as const)(
+    "generates consistent %s example reports",
+    async (type) => {
+      const input = exampleInput(type);
+      const result = analyze(input);
+      const text = await pdfText(await generateDecisionBrief(input));
+      expect(text).toContain(input.proposal.title);
+      expect(text).toContain(
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 0,
+        }).format(result.scenarios[1].capitalCost),
+      );
+      expect(text).toContain("No observed city statistics");
+    },
+  );
 
   it("handles long and unsupported characters without broken PDF generation", async () => {
     const input = exampleInput("bike-lane");
@@ -63,17 +80,63 @@ describe("decision briefs", () => {
     const result = analyze(exampleInput("bike-lane"));
     expect(decisionBriefText(result)).toContain("No external data source");
     expect(result.sources).toEqual([]);
+    expect(decisionBriefText(result)).not.toContain(
+      "Optional climate worksheet",
+    );
+  });
+
+  it("includes the explicit climate thought experiment with source and limits", async () => {
+    const input = {
+      ...exampleInput("bike-lane"),
+      climate: climateThoughtExperiment(),
+    };
+    const text = await pdfText(await generateDecisionBrief(input));
+    expect(text).toContain("Optional climate worksheet");
+    expect(text).toContain("HYPOTHETICAL THOUGHT EXPERIMENT");
+    expect(text).toContain("about 4 metric tonnes");
+    expect(text).toContain("10,000 vehicle miles/year");
+    expect(text).toContain("400 g CO2/vehicle mile");
+    expect(text).toContain("not a project uptake forecast");
+    expect(text).toContain("not net lifecycle");
+    expect(text).toContain("https://www.epa.gov/greenvehicles/");
+    expect(text).toContain("civicdt-tailpipe-v1.0.0");
+    const brief = decisionBriefText(analyze(input));
+    expect(brief).toContain("gross avoided tailpipe");
+    expect(brief).toContain("US EPA");
+  });
+
+  it("keeps missing climate inputs unknown and does not attach a benchmark reference", async () => {
+    const input = {
+      ...exampleInput("bike-lane"),
+      climate: emptyClimateInput(),
+    };
+    const text = await pdfText(await generateDecisionBrief(input));
+    expect(text).toContain("Climate output is not calculated");
+    expect(text).toContain("Not calculated; missing inputs remain unknown");
+    expect(text).not.toContain("https://www.epa.gov/");
   });
 
   it("recomputes PDF on the server instead of accepting forged client totals", async () => {
     const input = exampleInput("bike-lane");
-    const response = await POST(new Request("http://localhost/api/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...input, scenarios: [{ capitalCost: 1 }] }) }));
+    const response = await POST(
+      new Request("http://localhost/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...input, scenarios: [{ capitalCost: 1 }] }),
+      }),
+    );
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("application/pdf");
     expect(response.headers.get("content-disposition")).toContain("attachment");
     const text = await pdfText(new Uint8Array(await response.arrayBuffer()));
     expect(text).toContain("$1,345,500");
-    const invalid = await POST(new Request("http://localhost/api/report", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ scenarios: [{ capitalCost: 1 }] }) }));
+    const invalid = await POST(
+      new Request("http://localhost/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenarios: [{ capitalCost: 1 }] }),
+      }),
+    );
     expect(invalid.status).toBe(400);
   });
 });

@@ -91,12 +91,27 @@ Leaflet renders attributed OpenStreetMap base tiles. The proposal location is a 
 
 ## Sources and AI boundaries
 
-The built-in model results carry an empty external-source list because the defaults are authored examples. CivicDT must not synthesize citations to make them look researched. If an optional provider extracts or summarizes a proposal, returned content is validated and displayed with its execution mode; absent or unavailable AI falls back to deterministic demo behavior with a visible explanation.
+The cost model results carry an empty external-source list because the cost defaults are authored examples. CivicDT must not synthesize citations to make them look researched. The separate climate worksheet may carry an actual EPA reference only when that benchmark is explicitly selected. If an optional provider extracts a proposal, returned content is validated and displayed with its execution mode; absent or unavailable AI falls back to deterministic demo behavior with a visible explanation.
 
 The decision brief uses the validated model result as its numerical authority. Its statements distinguish accepted illustrative assumptions, unverified user inputs, computed arithmetic, and qualitative uncertainties. No AI-generated number becomes an independent modeled outcome.
 
 ## Exclusions and follow-up
 
-The model omits inflation, discounting, financing, residual value, asset renewals, land acquisition, unspecified utility relocation, project-specific operating costs, permitting detail, scheduling, and actual baseline expenditure. It does not quantify travel time, traffic redistribution, ridership, emissions, crashes, deaths prevented, health outcomes, crime reduction, or causal policy effects.
+The cost model omits inflation, discounting, financing, residual value, asset renewals, land acquisition, unspecified utility relocation, project-specific operating costs, permitting detail, scheduling, and actual baseline expenditure. It does not quantify travel time, traffic redistribution, ridership, project-caused emissions changes, crashes, deaths prevented, health outcomes, crime reduction, or causal policy effects.
 
 A real study should collect site geometry and right-of-way, local unit estimates, utility and drainage scope, traffic and pedestrian/cycle counts, operator data where relevant, accessibility requirements, safety evidence, and stakeholder concerns. A project engineer and appropriate local professionals must define scope and assess suitability. The prototype makes those missing investigations visible rather than replacing them.
+
+## Optional conditional climate worksheet
+
+The October 13 continuation adds model `civicdt-tailpipe-v1.0.0`, separate from the cost scenarios. It performs a dimensional conversion of **supplied annual avoided vehicle miles** and a **selected tailpipe CO₂ factor**:
+
+```text
+Gross avoided tailpipe CO₂ (metric tonnes/year)
+  = annual avoided vehicle miles × grams CO₂ per vehicle mile / 1,000,000
+```
+
+Both numeric inputs start `null`; the factor source starts unselected. Missing activity does not become zero, and corridor miles, crossings, construction cost, or project type do not infer avoided vehicle miles. The user can explicitly load a labeled thought experiment: 10,000 hypothetical avoided vehicle miles/year × the approximate EPA 400 g/mile benchmark / 1,000,000 = about 4 metric tonnes/year. This is conditional arithmetic, not an observed reduction or prediction.
+
+The EPA factor is an approximate gasoline passenger-vehicle tailpipe benchmark and requires explicit selection. It is not a local mixed-fleet or electric-vehicle factor. A custom factor requires a source/scope note. User-described measured activity requires a measurement source, period, and method note, but CivicDT does not verify those claims or establish causal attribution. The model allows a supplied zero, including a suitable zero tailpipe factor, while keeping missing values unknown.
+
+The result is **gross tailpipe CO₂**, not CO₂-equivalent or net lifecycle greenhouse-gas savings. Construction/materials, maintenance, fuel/electricity production, vehicle manufacturing, replacement-mode emissions, diversion, occupancy, induced travel, and rebound remain outside this conversion. There is no statistical confidence interval or carbon-credit claim. Saved climate inputs and their limitations accompany the recomputed report appendix. See [CLIMATE_EVIDENCE.md](CLIMATE_EVIDENCE.md) for verified primary sources and the proposed measurement plan.

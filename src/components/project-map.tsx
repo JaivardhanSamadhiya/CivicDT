@@ -2,9 +2,169 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
 import { Button } from "./ui/button";
-export function ProjectMap({coordinates,route,onChange}:{coordinates:[number,number];route:[number,number][];onChange:(coordinates:[number,number],route:[number,number][])=>void}){
-  const container=useRef<HTMLDivElement>(null);const map=useRef<LeafletMap|null>(null);const layers=useRef<LayerGroup|null>(null);const current=useRef({coordinates,route,onChange});current.current={coordinates,route,onChange};const drawing=useRef(false);const [draw,setDraw]=useState(false);const [ready,setReady]=useState(false);const [tileError,setTileError]=useState(false);const [scenario,setScenario]=useState("proposed");
-  useEffect(()=>{let disposed=false;let owned:LeafletMap|undefined;import("leaflet").then(L=>{if(disposed||!container.current)return;owned=L.map(container.current,{scrollWheelZoom:false}).setView(current.current.coordinates,14);map.current=owned;L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).on("tileerror",()=>setTileError(true)).addTo(owned);layers.current=L.layerGroup().addTo(owned);owned.on("click",e=>{const p:[number,number]=[Number(e.latlng.lat.toFixed(6)),Number(e.latlng.lng.toFixed(6))];const c=current.current;if(drawing.current)c.onChange(c.coordinates,[...c.route,p].slice(0,100));else c.onChange(p,c.route);});setReady(true);}).catch(()=>setTileError(true));return()=>{disposed=true;owned?.remove();map.current=null;layers.current=null;};},[]);
-  useEffect(()=>{if(!ready||!map.current||!layers.current)return;const m=map.current;const group=layers.current;let disposed=false;import("leaflet").then(L=>{if(disposed)return;group.clearLayers();const points=route.length>=2?route:[[coordinates[0]-.006,coordinates[1]-.013],coordinates,[coordinates[0]+.008,coordinates[1]+.009]] as [number,number][];L.polyline(points,{color:scenario==="baseline"?"#71899a":scenario==="alternative"?"#547bc1":"#07997e",weight:6,opacity:.85,dashArray:scenario==="baseline"?"8 8":undefined}).bindTooltip(route.length>=2?"Planner-drawn geometry · not surveyed":"Illustrative geometry · not measured").addTo(group);L.circleMarker(coordinates,{radius:9,color:"#fff",weight:3,fillColor:"#087a6b",fillOpacity:1}).bindTooltip("Editable project point").addTo(group);route.forEach((p,i)=>L.circleMarker(p,{radius:4,color:"#fff",fillColor:"#547bc1",weight:1,fillOpacity:1}).bindTooltip(`Route point ${i+1}`).addTo(group));m.panTo(coordinates);});return()=>{disposed=true;};},[coordinates,route,scenario,ready]);
-  return <div className="card map-card"><div ref={container} className="map-canvas" role="region" aria-label="Interactive project map"/><div className="map-status">{tileError?"Basemap tiles unavailable · editable sketch still works":"Illustrative geometry · no GIS length calculation"}</div><div className="map-tools"><label className="field" style={{margin:0,minWidth:145}}><span>Scenario layer</span><select aria-label="Scenario map layer" value={scenario} onChange={e=>setScenario(e.target.value)}><option value="baseline">Before · baseline</option><option value="proposed">After · proposed</option><option value="alternative">Alternative</option></select></label><Button variant={draw?"default":"secondary"} aria-pressed={draw} onClick={()=>{setDraw(!draw);drawing.current=!draw;}}>{draw?"Finish route":"Draw route"}</Button><Button variant="ghost" onClick={()=>onChange(coordinates,[])}>Clear route</Button><small>{draw?"Click the map to add route points (up to 100).":"Click the map to move the project point. Coordinates can also be edited in the location panel."} {route.length} route points.</small></div></div>;
+export function ProjectMap({
+  coordinates,
+  route,
+  onChange,
+}: {
+  coordinates: [number, number];
+  route: [number, number][];
+  onChange: (coordinates: [number, number], route: [number, number][]) => void;
+}) {
+  const container = useRef<HTMLDivElement>(null);
+  const map = useRef<LeafletMap | null>(null);
+  const layers = useRef<LayerGroup | null>(null);
+  const current = useRef({ coordinates, route, onChange });
+  current.current = { coordinates, route, onChange };
+  const drawing = useRef(false);
+  const [draw, setDraw] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [tileError, setTileError] = useState(false);
+  const [scenario, setScenario] = useState("proposed");
+  useEffect(() => {
+    let disposed = false;
+    let owned: LeafletMap | undefined;
+    import("leaflet")
+      .then((L) => {
+        if (disposed || !container.current) return;
+        owned = L.map(container.current, { scrollWheelZoom: false }).setView(
+          current.current.coordinates,
+          14,
+        );
+        map.current = owned;
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        })
+          .on("tileerror", () => setTileError(true))
+          .addTo(owned);
+        layers.current = L.layerGroup().addTo(owned);
+        owned.on("click", (e) => {
+          const p: [number, number] = [
+            Number(e.latlng.lat.toFixed(6)),
+            Number(e.latlng.lng.toFixed(6)),
+          ];
+          const c = current.current;
+          if (drawing.current)
+            c.onChange(c.coordinates, [...c.route, p].slice(0, 100));
+          else c.onChange(p, c.route);
+        });
+        setReady(true);
+      })
+      .catch(() => setTileError(true));
+    return () => {
+      disposed = true;
+      owned?.remove();
+      map.current = null;
+      layers.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    if (!ready || !map.current || !layers.current) return;
+    const m = map.current;
+    const group = layers.current;
+    let disposed = false;
+    import("leaflet").then((L) => {
+      if (disposed) return;
+      group.clearLayers();
+      const points =
+        route.length >= 2
+          ? route
+          : ([
+              [coordinates[0] - 0.006, coordinates[1] - 0.013],
+              coordinates,
+              [coordinates[0] + 0.008, coordinates[1] + 0.009],
+            ] as [number, number][]);
+      L.polyline(points, {
+        color:
+          scenario === "baseline"
+            ? "#71899a"
+            : scenario === "alternative"
+              ? "#547bc1"
+              : "#07997e",
+        weight: 6,
+        opacity: 0.85,
+        dashArray: scenario === "baseline" ? "8 8" : undefined,
+      })
+        .bindTooltip(
+          route.length >= 2
+            ? "Planner-drawn geometry · not surveyed"
+            : "Illustrative geometry · not measured",
+        )
+        .addTo(group);
+      L.circleMarker(coordinates, {
+        radius: 9,
+        color: "#fff",
+        weight: 3,
+        fillColor: "#087a6b",
+        fillOpacity: 1,
+      })
+        .bindTooltip("Editable project point")
+        .addTo(group);
+      route.forEach((p, i) =>
+        L.circleMarker(p, {
+          radius: 4,
+          color: "#fff",
+          fillColor: "#547bc1",
+          weight: 1,
+          fillOpacity: 1,
+        })
+          .bindTooltip(`Route point ${i + 1}`)
+          .addTo(group),
+      );
+      m.panTo(coordinates);
+    });
+    return () => {
+      disposed = true;
+    };
+  }, [coordinates, route, scenario, ready]);
+  return (
+    <div className="card map-card">
+      <div
+        ref={container}
+        className="map-canvas"
+        role="region"
+        aria-label="Interactive project map"
+      />
+      <div className="map-status">
+        {tileError
+          ? "Basemap tiles unavailable · editable sketch still works"
+          : "Illustrative geometry · no GIS length calculation"}
+      </div>
+      <div className="map-tools">
+        <label className="field" style={{ margin: 0, minWidth: 145 }}>
+          <span>Scenario layer</span>
+          <select
+            aria-label="Scenario map layer"
+            value={scenario}
+            onChange={(e) => setScenario(e.target.value)}
+          >
+            <option value="baseline">Before · baseline</option>
+            <option value="proposed">After · proposed</option>
+            <option value="alternative">Alternative</option>
+          </select>
+        </label>
+        <Button
+          variant={draw ? "default" : "secondary"}
+          aria-pressed={draw}
+          onClick={() => {
+            setDraw(!draw);
+            drawing.current = !draw;
+          }}
+        >
+          {draw ? "Finish route" : "Draw route"}
+        </Button>
+        <Button variant="ghost" onClick={() => onChange(coordinates, [])}>
+          Clear route
+        </Button>
+        <small>
+          {draw
+            ? "Click the map to add route points (up to 100)."
+            : "Click the map to move the project point. Coordinates can also be edited in the location panel."}{" "}
+          {route.length} route points.
+        </small>
+      </div>
+    </div>
+  );
 }

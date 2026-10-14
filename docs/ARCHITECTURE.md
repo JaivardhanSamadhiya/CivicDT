@@ -6,13 +6,15 @@ CivicDT is a Next.js App Router application written in TypeScript. It has no dat
 
 | Layer | Responsibility |
 | --- | --- |
-| `src/app` | App Router pages and server API endpoints. Dashboard `/`, New Analysis `/analysis`, Scenario Comparison `/comparison`, Map `/map`, Reports `/reports`, and Methodology `/methodology`. |
+| `src/app` | App Router pages and server API endpoints. Dashboard `/`, New Analysis `/analysis`, Scenario Comparison `/comparison`, Map `/map`, Reports `/reports`, Methodology `/methodology`, and Climate evidence `/climate`. |
 | Reusable UI components | App shell, sidebar, accessible controls, workflow stages, input confirmation, charts, report presentation, and client-only Leaflet map. |
 | `src/lib/schema.ts` | Project/evidence schemas, nullable proposal fields, bounded assumptions, analysis contracts, and result interfaces. |
 | `src/lib/engine.ts` | Independent validated cost arithmetic, scenario construction, sensitivity, qualitative tradeoffs, limitations, and model version. |
 | `src/lib/examples.ts` | Newly authored hypothetical proposal text and explicit illustrative example inputs. |
-| Server extraction/provider modules | Deterministic parsing, optional server AI extraction, evidence verification, explicit mode and fallback warnings. |
-| Server document/report modules | TXT/text-PDF validation and extraction; model-derived printable PDF generation. |
+| `src/lib/climate.ts` | Separate validated conditional tailpipe conversion, explicit source selection, nullable starting inputs, and climate-specific limitations. |
+| `src/lib/ai.ts`, `src/lib/extraction.ts` | Deterministic parsing, optional server AI extraction, evidence verification, explicit mode and fallback warnings. |
+| `src/lib/upload.ts`, `src/lib/report.ts` | TXT/text-PDF validation and extraction; model-derived printable PDF generation. |
+| `src/app/api/{extract,upload,analyze,report}/route.ts` | Server request boundaries for extraction, document ingestion, deterministic analysis, and PDF attachment export. |
 | Browser persistence | Current-browser saved scenarios and results. No cross-device synchronization. |
 | `tests` | Unit/integration tests and Playwright workflow tests. |
 
@@ -42,6 +44,8 @@ Stage indicators reflect work actually being executed or completed, with an erro
 
 `AnalysisResult` contains the model version, generation timestamp, accepted input, quantity/unit, three scenarios, neutral summary, limitations, follow-up investigations, and actual source references. Results are computed from validated input. The PDF route recomputes the result from that input instead of trusting client-supplied output totals.
 
+`AnalysisInput.climate` is optional and does not alter scenario cost arithmetic. It records annual avoided vehicle miles, grams of tailpipe CO₂ per vehicle mile, a hypothetical/user-described-measured basis, evidence notes, and an explicit EPA/user source choice. The climate worksheet starts with numeric values and source set to `null`. `calculateClimate` returns a missing-input state until all required values/source exist. A saved worksheet persists with the analysis and the PDF route recomputes its conditional appendix. The optional module was authored October 13, outside the original EvoHacks window.
+
 ## Optional AI integration
 
 The provider is behind a server-side abstraction. Environment configuration is:
@@ -59,7 +63,7 @@ The LLM does not calculate costs or populate unobserved outcome metrics. This MV
 
 ## Documents and reports
 
-Uploads accept UTF-8 TXT or text-based PDF, up to **2 MiB**, with no more than **30,000 extracted characters**. File type, content signature where applicable, size, decoding, extracted text, and schema bounds are checked. Empty/scanned PDFs are rejected with a readable message; the application does not provide OCR. Document extraction and provider calls happen on the server.
+Uploads accept UTF-8 TXT or text-based PDF, up to **2 MiB**, no more than **30,000 extracted characters**, and at most **50 PDF pages**. The actual request body is bounded, including chunked bodies. File type, content signature where applicable, size, decoding, extracted text, and schema bounds are checked. Empty/scanned PDFs are rejected with a readable message; the application does not provide OCR. Document extraction and provider calls happen on the server.
 
 PDF generation uses `pdf-lib`. A paginated printable decision brief records title/location, executive summary, accepted assumptions, scenario costs/ranges, qualitative tradeoffs, limitations, follow-up investigations, model version, timestamp, and source references where they exist. All numerical results come from server-recomputed deterministic analysis. Built-in assumptions have no invented citations.
 

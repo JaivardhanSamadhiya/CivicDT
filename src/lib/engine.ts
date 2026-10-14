@@ -55,8 +55,16 @@ export const DEFAULT_ASSUMPTIONS: Record<ProjectType, Assumptions> = {
 };
 
 interface InterventionDescription {
-  proposed: { name: string; description: string; tradeoffs: Scenario["tradeoffs"] };
-  alternative: { name: string; description: string; tradeoffs: Scenario["tradeoffs"] };
+  proposed: {
+    name: string;
+    description: string;
+    tradeoffs: Scenario["tradeoffs"];
+  };
+  alternative: {
+    name: string;
+    description: string;
+    tradeoffs: Scenario["tradeoffs"];
+  };
   followUp: string[];
 }
 
@@ -64,22 +72,32 @@ const descriptions: Record<ProjectType, InterventionDescription> = {
   "bike-lane": {
     proposed: {
       name: "Protected bike lane",
-      description: "Illustrative separation treatment along the supplied corridor length; an engineering design is required to define the physical scope.",
+      description:
+        "Illustrative separation treatment along the supplied corridor length; an engineering design is required to define the physical scope.",
       tradeoffs: {
-        access: "Dedicated cycling space may broaden route choices; continuity and accessible loading require assessment.",
-        safety: "Separation changes conflict patterns. Intersection design, turning movements, and local evidence require review; no safety outcome is quantified.",
-        operations: "Repurposed curb or lane space may affect parking, deliveries, emergency access, and drainage.",
-        delivery: "Physical separation entails site design, utility checks, procurement, and a maintenance plan.",
+        access:
+          "Dedicated cycling space may broaden route choices; continuity and accessible loading require assessment.",
+        safety:
+          "Separation changes conflict patterns. Intersection design, turning movements, and local evidence require review; no safety outcome is quantified.",
+        operations:
+          "Repurposed curb or lane space may affect parking, deliveries, emergency access, and drainage.",
+        delivery:
+          "Physical separation entails site design, utility checks, procurement, and a maintenance plan.",
       },
     },
     alternative: {
       name: "Quick-build bike lane",
-      description: "Illustrative lower-cost markings and flexible delineators on the same corridor; durability and protection differ from the proposed treatment.",
+      description:
+        "Illustrative lower-cost markings and flexible delineators on the same corridor; durability and protection differ from the proposed treatment.",
       tradeoffs: {
-        access: "A staged corridor treatment can be evaluated before a permanent design; network gaps still require review.",
-        safety: "Flexible delineation offers a different protection level. No relative crash effect is modeled.",
-        operations: "Delineators may require replacement and can complicate sweeping, loading, or snow clearance.",
-        delivery: "Assumed lower construction cost; actual schedule and permitting remain unestimated.",
+        access:
+          "A staged corridor treatment can be evaluated before a permanent design; network gaps still require review.",
+        safety:
+          "Flexible delineation offers a different protection level. No relative crash effect is modeled.",
+        operations:
+          "Delineators may require replacement and can complicate sweeping, loading, or snow clearance.",
+        delivery:
+          "Assumed lower construction cost; actual schedule and permitting remain unestimated.",
       },
     },
     followUp: [
@@ -92,22 +110,32 @@ const descriptions: Record<ProjectType, InterventionDescription> = {
   "bus-priority": {
     proposed: {
       name: "Bus-priority corridor",
-      description: "Illustrative corridor treatment with dedicated priority space; signal, station, and fleet upgrades need a separately defined scope.",
+      description:
+        "Illustrative corridor treatment with dedicated priority space; signal, station, and fleet upgrades need a separately defined scope.",
       tradeoffs: {
-        access: "Transit access depends on stop placement, pedestrian connections, operating hours, and service frequency.",
-        safety: "Stop and crossing design requires assessment; no crash or injury change is estimated.",
-        operations: "Priority space changes lane and curb allocation; enforcement and signal operations need an operating plan.",
-        delivery: "Requires coordination with the transit operator, traffic engineering, and accessibility review.",
+        access:
+          "Transit access depends on stop placement, pedestrian connections, operating hours, and service frequency.",
+        safety:
+          "Stop and crossing design requires assessment; no crash or injury change is estimated.",
+        operations:
+          "Priority space changes lane and curb allocation; enforcement and signal operations need an operating plan.",
+        delivery:
+          "Requires coordination with the transit operator, traffic engineering, and accessibility review.",
       },
     },
     alternative: {
       name: "Targeted bus-priority treatments",
-      description: "Illustrative markings and targeted corridor improvements, assumed at a lower cost per corridor mile; this is not a forecast of equivalent benefits.",
+      description:
+        "Illustrative markings and targeted corridor improvements, assumed at a lower cost per corridor mile; this is not a forecast of equivalent benefits.",
       tradeoffs: {
-        access: "Targeted improvements may leave portions of the corridor without priority treatment.",
-        safety: "Stop-area and crossing conflicts remain site-specific and unquantified.",
-        operations: "Limited treatments require identifying bottlenecks and coordinating enforcement.",
-        delivery: "Assumed lower capital intensity; treatment locations and signal costs need validation.",
+        access:
+          "Targeted improvements may leave portions of the corridor without priority treatment.",
+        safety:
+          "Stop-area and crossing conflicts remain site-specific and unquantified.",
+        operations:
+          "Limited treatments require identifying bottlenecks and coordinating enforcement.",
+        delivery:
+          "Assumed lower capital intensity; treatment locations and signal costs need validation.",
       },
     },
     followUp: [
@@ -120,22 +148,32 @@ const descriptions: Record<ProjectType, InterventionDescription> = {
   pedestrian: {
     proposed: {
       name: "Enhanced pedestrian crossings",
-      description: "Illustrative crossing improvements at the supplied number of locations; refuge islands, curb changes, and signals require a defined site design.",
+      description:
+        "Illustrative crossing improvements at the supplied number of locations; refuge islands, curb changes, and signals require a defined site design.",
       tradeoffs: {
-        access: "Crossing layout must address step-free access, tactile surfaces, sightlines, and pedestrian desire lines.",
-        safety: "Treatments address conflict points, but no crash reduction or deaths prevented are calculated.",
-        operations: "Curb changes may affect drainage, turning paths, loading, and emergency access.",
-        delivery: "Site surveys and accessibility review are needed for each crossing.",
+        access:
+          "Crossing layout must address step-free access, tactile surfaces, sightlines, and pedestrian desire lines.",
+        safety:
+          "Treatments address conflict points, but no crash reduction or deaths prevented are calculated.",
+        operations:
+          "Curb changes may affect drainage, turning paths, loading, and emergency access.",
+        delivery:
+          "Site surveys and accessibility review are needed for each crossing.",
       },
     },
     alternative: {
       name: "Crossing markings and visibility",
-      description: "Illustrative lower-cost markings and visibility improvements at the same number of crossings; suitability depends on speeds, volumes, and geometry.",
+      description:
+        "Illustrative lower-cost markings and visibility improvements at the same number of crossings; suitability depends on speeds, volumes, and geometry.",
       tradeoffs: {
-        access: "Markings alone may not resolve missing ramps, long crossing distances, or inaccessible connections.",
-        safety: "Suitability requires site review; benefits relative to the proposed treatment are not quantified.",
-        operations: "Markings need renewal, and visibility improvements may change curb parking.",
-        delivery: "Assumed lower capital cost; each site still needs a treatment selection assessment.",
+        access:
+          "Markings alone may not resolve missing ramps, long crossing distances, or inaccessible connections.",
+        safety:
+          "Suitability requires site review; benefits relative to the proposed treatment are not quantified.",
+        operations:
+          "Markings need renewal, and visibility improvements may change curb parking.",
+        delivery:
+          "Assumed lower capital cost; each site still needs a treatment selection assessment.",
       },
     },
     followUp: [
@@ -147,11 +185,21 @@ const descriptions: Record<ProjectType, InterventionDescription> = {
   },
 };
 
-function capitalCosts(quantity: number, unitCost: number, assumptions: Assumptions) {
+function capitalCosts(
+  quantity: number,
+  unitCost: number,
+  assumptions: Assumptions,
+) {
   const constructionCost = quantity * unitCost;
-  const designCost = constructionCost * assumptions.designPercent / 100;
-  const contingencyCost = (constructionCost + designCost) * assumptions.contingencyPercent / 100;
-  return { constructionCost, designCost, contingencyCost, capitalCost: constructionCost + designCost + contingencyCost };
+  const designCost = (constructionCost * assumptions.designPercent) / 100;
+  const contingencyCost =
+    ((constructionCost + designCost) * assumptions.contingencyPercent) / 100;
+  return {
+    constructionCost,
+    designCost,
+    contingencyCost,
+    capitalCost: constructionCost + designCost + contingencyCost,
+  };
 }
 
 function costScenario(
@@ -160,8 +208,14 @@ function costScenario(
   assumptions: Assumptions,
   description: InterventionDescription["proposed"],
 ): Scenario {
-  const unitCost = id === "proposed" ? assumptions.capitalPerUnit : assumptions.alternativeCapitalPerUnit;
-  const maintenancePerUnit = id === "proposed" ? assumptions.annualMaintenancePerUnit : assumptions.alternativeAnnualMaintenancePerUnit;
+  const unitCost =
+    id === "proposed"
+      ? assumptions.capitalPerUnit
+      : assumptions.alternativeCapitalPerUnit;
+  const maintenancePerUnit =
+    id === "proposed"
+      ? assumptions.annualMaintenancePerUnit
+      : assumptions.alternativeAnnualMaintenancePerUnit;
   const costs = capitalCosts(quantity, unitCost, assumptions);
   const annualMaintenance = quantity * maintenancePerUnit;
   const sensitivity = assumptions.sensitivityPercent / 100;
@@ -170,17 +224,30 @@ function costScenario(
     ...description,
     ...costs,
     annualMaintenance,
-    lifecycleCost: costs.capitalCost + annualMaintenance * assumptions.horizonYears,
+    lifecycleCost:
+      costs.capitalCost + annualMaintenance * assumptions.horizonYears,
     // Sensitivity changes unit costs; design and contingency percentages stay fixed.
-    capitalLow: capitalCosts(quantity, unitCost * (1 - sensitivity), assumptions).capitalCost,
-    capitalHigh: capitalCosts(quantity, unitCost * (1 + sensitivity), assumptions).capitalCost,
+    capitalLow: capitalCosts(
+      quantity,
+      unitCost * (1 - sensitivity),
+      assumptions,
+    ).capitalCost,
+    capitalHigh: capitalCosts(
+      quantity,
+      unitCost * (1 + sensitivity),
+      assumptions,
+    ).capitalCost,
     maintenanceLow: quantity * maintenancePerUnit * (1 - sensitivity),
     maintenanceHigh: quantity * maintenancePerUnit * (1 + sensitivity),
   };
 }
 
 export function formatMoney(value: number): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 /**
@@ -190,25 +257,44 @@ export function formatMoney(value: number): string {
 export function analyze(input: AnalysisInput): AnalysisResult {
   const parsed = analysisInputSchema.safeParse(input);
   if (!parsed.success) {
-    const message = parsed.error.issues.map(issue => `${issue.path.join(".") || "input"}: ${issue.message}`).join("; ");
+    const message = parsed.error.issues
+      .map((issue) => `${issue.path.join(".") || "input"}: ${issue.message}`)
+      .join("; ");
     throw new Error(`Review the analysis inputs: ${message}`);
   }
   const validated = parsed.data;
   const { proposal, assumptions } = validated;
-  if (validated.assumptionBasis === "illustrative" && !validated.illustrativeAccepted) {
-    throw new Error("Accept the clearly labeled illustrative cost assumptions or supply your own assumptions before calculating.");
+  if (
+    validated.assumptionBasis === "illustrative" &&
+    !validated.illustrativeAccepted
+  ) {
+    throw new Error(
+      "Accept the clearly labeled illustrative cost assumptions or supply your own assumptions before calculating.",
+    );
   }
-  if (proposal.type === null) throw new Error("Select an infrastructure project type before calculating.");
-  if (proposal.location === null || proposal.location.trim() === "") throw new Error("Supply a project location before calculating.");
-  const quantity = proposal.type === "pedestrian" ? proposal.crossingCount : proposal.distanceMiles;
+  if (proposal.type === null)
+    throw new Error(
+      "Select an infrastructure project type before calculating.",
+    );
+  if (proposal.location === null || proposal.location.trim() === "")
+    throw new Error("Supply a project location before calculating.");
+  const quantity =
+    proposal.type === "pedestrian"
+      ? proposal.crossingCount
+      : proposal.distanceMiles;
   if (quantity === null) {
-    throw new Error(proposal.type === "pedestrian" ? "Supply the number of crossings before calculating." : "Supply the corridor distance in miles before calculating.");
+    throw new Error(
+      proposal.type === "pedestrian"
+        ? "Supply the number of crossings before calculating."
+        : "Supply the corridor distance in miles before calculating.",
+    );
   }
   const description = descriptions[proposal.type];
   const baseline: Scenario = {
     id: "baseline",
     name: "No new intervention",
-    description: "Reference case with no new project spending. Existing city spending and maintenance are excluded, not assumed to be zero.",
+    description:
+      "Reference case with no new project spending. Existing city spending and maintenance are excluded, not assumed to be zero.",
     capitalCost: 0,
     annualMaintenance: 0,
     lifecycleCost: 0,
@@ -220,14 +306,28 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     designCost: 0,
     contingencyCost: 0,
     tradeoffs: {
-      access: "Retains the current configuration; current accessibility conditions have not been measured.",
-      safety: "Retains the current configuration; baseline safety conditions have not been assessed.",
-      operations: "No new intervention-related operating scope. Existing operations continue outside this model.",
-      delivery: "No project construction. Existing asset renewal and liabilities are excluded.",
+      access:
+        "Retains the current configuration; current accessibility conditions have not been measured.",
+      safety:
+        "Retains the current configuration; baseline safety conditions have not been assessed.",
+      operations:
+        "No new intervention-related operating scope. Existing operations continue outside this model.",
+      delivery:
+        "No project construction. Existing asset renewal and liabilities are excluded.",
     },
   };
-  const proposed = costScenario("proposed", quantity, assumptions, description.proposed);
-  const alternative = costScenario("alternative", quantity, assumptions, description.alternative);
+  const proposed = costScenario(
+    "proposed",
+    quantity,
+    assumptions,
+    description.proposed,
+  );
+  const alternative = costScenario(
+    "alternative",
+    quantity,
+    assumptions,
+    description.alternative,
+  );
   const unit = proposal.type === "pedestrian" ? "crossing" : "corridor mile";
   const limitations = [
     validated.assumptionBasis === "illustrative"
@@ -242,7 +342,9 @@ export function analyze(input: AnalysisInput): AnalysisResult {
     "Cost-only alternatives have different physical scope and may not provide equivalent service or outcomes. This model does not rank political choices or establish a benefit-cost ratio.",
   ];
   if (proposal.budget !== null) {
-    limitations.push("The stated budget is a comparison constraint, not an observed cost or proof of funding. Budget coverage excludes all unmodeled costs.");
+    limitations.push(
+      "The stated budget is a comparison constraint, not an observed cost or proof of funding. Budget coverage excludes all unmodeled costs.",
+    );
   }
   return {
     modelVersion: MODEL_VERSION,

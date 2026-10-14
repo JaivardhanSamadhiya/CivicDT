@@ -23,19 +23,33 @@ describe("deterministic incremental cost analysis", () => {
     expect(baseline.description).toContain("Existing city spending");
   });
 
-  it.each<ProjectType>(["bike-lane", "bus-priority", "pedestrian"])("runs the %s demo without external services", type => {
-    const result = analyze(exampleInput(type));
-    expect(result.scenarios.map(item => item.id)).toEqual(["baseline", "proposed", "alternative"]);
-    expect(result.scenarios[1].capitalCost).toBeGreaterThan(result.scenarios[2].capitalCost);
-    for (const scenario of result.scenarios) {
-      expect(scenario.lifecycleCost).toBeCloseTo(scenario.capitalCost + scenario.annualMaintenance * result.input.assumptions.horizonYears);
-      expect(scenario.capitalLow).toBeLessThanOrEqual(scenario.capitalCost);
-      expect(scenario.capitalHigh).toBeGreaterThanOrEqual(scenario.capitalCost);
-    }
-    expect(result.sources).toEqual([]);
-    expect(result.limitations.join(" ")).toContain("not observed city data");
-    expect(Number.isNaN(Date.parse(result.generatedAt))).toBe(false);
-  });
+  it.each<ProjectType>(["bike-lane", "bus-priority", "pedestrian"])(
+    "runs the %s demo without external services",
+    (type) => {
+      const result = analyze(exampleInput(type));
+      expect(result.scenarios.map((item) => item.id)).toEqual([
+        "baseline",
+        "proposed",
+        "alternative",
+      ]);
+      expect(result.scenarios[1].capitalCost).toBeGreaterThan(
+        result.scenarios[2].capitalCost,
+      );
+      for (const scenario of result.scenarios) {
+        expect(scenario.lifecycleCost).toBeCloseTo(
+          scenario.capitalCost +
+            scenario.annualMaintenance * result.input.assumptions.horizonYears,
+        );
+        expect(scenario.capitalLow).toBeLessThanOrEqual(scenario.capitalCost);
+        expect(scenario.capitalHigh).toBeGreaterThanOrEqual(
+          scenario.capitalCost,
+        );
+      }
+      expect(result.sources).toEqual([]);
+      expect(result.limitations.join(" ")).toContain("not observed city data");
+      expect(Number.isNaN(Date.parse(result.generatedAt))).toBe(false);
+    },
+  );
 
   it("uses crossings for pedestrian projects, not a supplied distance", () => {
     const input = exampleInput("pedestrian");
@@ -57,7 +71,9 @@ describe("deterministic incremental cost analysis", () => {
     expect(proposed.capitalHigh).toBeCloseTo(high);
     expect(proposed.maintenanceLow).toBeCloseTo(14_700);
     expect(proposed.maintenanceHigh).toBeCloseTo(27_300);
-    expect(analyze(input).limitations.join(" ")).toContain("not confidence intervals");
+    expect(analyze(input).limitations.join(" ")).toContain(
+      "not confidence intervals",
+    );
   });
 
   it("recalculates both comparisons and horizon totals after assumption changes", () => {
@@ -66,17 +82,26 @@ describe("deterministic incremental cost analysis", () => {
     input.assumptions.capitalPerUnit *= 2;
     input.assumptions.horizonYears = 20;
     const after = analyze(input);
-    expect(after.scenarios[1].capitalCost).toBe(before.scenarios[1].capitalCost * 2);
-    expect(after.scenarios[2].capitalCost).toBe(before.scenarios[2].capitalCost);
-    expect(after.scenarios[1].lifecycleCost).toBe(after.scenarios[1].capitalCost + 420_000);
+    expect(after.scenarios[1].capitalCost).toBe(
+      before.scenarios[1].capitalCost * 2,
+    );
+    expect(after.scenarios[2].capitalCost).toBe(
+      before.scenarios[2].capitalCost,
+    );
+    expect(after.scenarios[1].lifecycleCost).toBe(
+      after.scenarios[1].capitalCost + 420_000,
+    );
   });
 
   it("supports zero design, contingency, maintenance, and sensitivity without artificial costs", () => {
     const input = exampleInput("bike-lane");
     Object.assign(input.assumptions, {
-      designPercent: 0, contingencyPercent: 0,
-      annualMaintenancePerUnit: 0, alternativeAnnualMaintenancePerUnit: 0,
-      sensitivityPercent: 0, horizonYears: 1,
+      designPercent: 0,
+      contingencyPercent: 0,
+      annualMaintenancePerUnit: 0,
+      alternativeAnnualMaintenancePerUnit: 0,
+      sensitivityPercent: 0,
+      horizonYears: 1,
     });
     const proposed = analyze(input).scenarios[1];
     expect(proposed.capitalCost).toBe(975_000);
@@ -89,20 +114,31 @@ describe("deterministic incremental cost analysis", () => {
 
   it("accepts a same-capital-cost alternative and the upper sensitivity boundary", () => {
     const input = exampleInput("bike-lane");
-    input.assumptions.alternativeCapitalPerUnit = input.assumptions.capitalPerUnit;
+    input.assumptions.alternativeCapitalPerUnit =
+      input.assumptions.capitalPerUnit;
     input.assumptions.sensitivityPercent = 90;
     const result = analyze(input);
-    expect(result.scenarios[2].capitalCost).toBe(result.scenarios[1].capitalCost);
-    expect(result.scenarios[1].capitalLow).toBeCloseTo(result.scenarios[1].capitalCost * 0.1);
-    expect(result.scenarios[1].capitalHigh).toBeCloseTo(result.scenarios[1].capitalCost * 1.9);
+    expect(result.scenarios[2].capitalCost).toBe(
+      result.scenarios[1].capitalCost,
+    );
+    expect(result.scenarios[1].capitalLow).toBeCloseTo(
+      result.scenarios[1].capitalCost * 0.1,
+    );
+    expect(result.scenarios[1].capitalHigh).toBeCloseTo(
+      result.scenarios[1].capitalCost * 1.9,
+    );
   });
 
   it("requires illustrative acceptance and allows user-supplied assumptions", () => {
     const input = exampleInput("bike-lane");
     input.illustrativeAccepted = false;
-    expect(() => analyze(input)).toThrow("Accept the clearly labeled illustrative");
+    expect(() => analyze(input)).toThrow(
+      "Accept the clearly labeled illustrative",
+    );
     input.assumptionBasis = "user";
-    expect(analyze(input).limitations[0]).toContain("not been independently verified");
+    expect(analyze(input).limitations[0]).toContain(
+      "not been independently verified",
+    );
   });
 
   it("never fills null type, location, distance, or crossing inputs", () => {
@@ -129,7 +165,9 @@ describe("deterministic incremental cost analysis", () => {
     expect(result.input.proposal.budget).toBeNull();
     expect(result.input.proposal.missing).toContain("budget");
     input.proposal.budget = 1_000_000;
-    expect(analyze(input).limitations.join(" ")).toContain("not an observed cost or proof of funding");
+    expect(analyze(input).limitations.join(" ")).toContain(
+      "not an observed cost or proof of funding",
+    );
   });
 
   it.each([
@@ -153,7 +191,8 @@ describe("deterministic incremental cost analysis", () => {
     crossings.proposal.crossingCount = 1.5;
     expect(() => analyze(crossings)).toThrow("crossingCount");
     const costs = exampleInput("bike-lane");
-    costs.assumptions.alternativeCapitalPerUnit = costs.assumptions.capitalPerUnit + 1;
+    costs.assumptions.alternativeCapitalPerUnit =
+      costs.assumptions.capitalPerUnit + 1;
     expect(() => analyze(costs)).toThrow("lower-cost alternative");
   });
 
@@ -164,7 +203,9 @@ describe("deterministic incremental cost analysis", () => {
     for (const example of examples) {
       const proposal = exampleInput(example.id).proposal;
       for (const evidence of proposal.evidence) {
-        expect(proposal.sourceText.slice(evidence.start, evidence.end)).toBe(evidence.quote);
+        expect(proposal.sourceText.slice(evidence.start, evidence.end)).toBe(
+          evidence.quote,
+        );
       }
     }
   });

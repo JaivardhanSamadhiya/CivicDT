@@ -1,12 +1,253 @@
 "use client";
 import { useState } from "react";
+import { ClimateAppendix } from "@/components/climate-appendix";
+import { readAPIJSON } from "@/lib/client-api";
 import { Download, CheckCircle2, LoaderCircle } from "lucide-react";
 import { useWorkspace } from "@/lib/workspace";
 import { PageHeading, EmptyState, EvidenceNotice } from "@/components/common";
 import { assumptionFields } from "@/components/assumptions-editor";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/engine";
-export default function ReportsPage(){const {active}=useWorkspace();const [busy,setBusy]=useState(false);const [error,setError]=useState("");const [done,setDone]=useState(false);const result=active?.result;
-async function download(){if(!result)return;setBusy(true);setError("");setDone(false);try{const response=await fetch("/api/report",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(result.input)});if(!response.ok){const data=await response.json();throw new Error(data.error??"Report could not be generated.");}const blob=await response.blob();const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download="civicdt-decision-brief.pdf";link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);setDone(true);}catch(e){setError(e instanceof Error?e.message:"Report generation failed.");}finally{setBusy(false);}}
-return <><PageHeading eyebrow="DECISION BRIEF" title="The evidence, together." description="A neutral record of scope, assumptions, costs, tradeoffs, and next steps."/>{!result?<EmptyState/>:<><EvidenceNotice basis={result.input.assumptionBasis}/>{error&&<div className="alert error" role="alert">{error}</div>}<div className="report-layout"><article className="card report-document"><header className="report-header"><p className="eyebrow">CIVICDT · INFRASTRUCTURE DECISION BRIEF</p><h2>{result.input.proposal.title}</h2><p>{result.input.proposal.location}</p><div className="report-meta"><span>Model: {result.modelVersion}</span><span>Analysis: {new Date(result.generatedAt).toLocaleString("en-US",{timeZone:"America/Los_Angeles"})} Pacific</span><span>Input basis: {result.input.assumptionBasis}</span></div></header><h3>Executive summary</h3><p className="report-summary">{result.summary}</p><h3>Scenario comparison · incremental USD</h3><div className="table-wrap"><table><thead><tr><th>Scenario</th><th>Capital</th><th>Annual maintenance</th><th>{result.input.assumptions.horizonYears}-year total</th></tr></thead><tbody>{result.scenarios.map(s=><tr key={s.id}><td>{s.name}</td><td>{formatMoney(s.capitalCost)}</td><td>{formatMoney(s.annualMaintenance)}</td><td>{formatMoney(s.lifecycleCost)}</td></tr>)}</tbody></table></div><p>Baseline zero means no new intervention spending. Existing city spending is excluded. Horizon totals are undiscounted and exclude financing, inflation, and asset renewals.</p><h3>Input assumptions</h3><p>Scope: {result.quantity} {result.unit}{result.quantity!==1?"s":""}. Budget: {result.input.proposal.budget===null?"not supplied":formatMoney(result.input.proposal.budget)}.</p><div className="table-wrap"><table><thead><tr><th>Assumption</th><th>Value</th><th>Unit</th></tr></thead><tbody>{assumptionFields.map(f=><tr key={f.key}><td>{f.label}</td><td>{result.input.assumptions[f.key].toLocaleString("en-US")}</td><td>{f.unit.replace("unit",result.unit)}</td></tr>)}</tbody></table></div><h3>Sensitivity bounds</h3>{result.scenarios.filter(s=>s.id!=="baseline").map(s=><p key={s.id}><strong>{s.name}</strong>: capital {formatMoney(s.capitalLow)}–{formatMoney(s.capitalHigh)}; annual maintenance {formatMoney(s.maintenanceLow)}–{formatMoney(s.maintenanceHigh)}. These are cost scenarios, not statistical confidence intervals.</p>)}<h3>Qualitative tradeoffs</h3>{result.scenarios.map(s=><section key={s.id}><h3>{s.name}</h3><p>{s.description}</p><ul>{Object.entries(s.tradeoffs).map(([key,value])=><li key={key}><strong className="capitalize">{key}: </strong>{value}</li>)}</ul></section>)}<h3>Quantitative limitations</h3><ul>{result.limitations.map(l=><li key={l}>{l}</li>)}</ul><h3>Follow-up investigations</h3><ul>{result.followUp.map(l=><li key={l}>{l}</li>)}</ul><h3>Sources and traceability</h3><p>{result.sources.length?"References accompany the analysis.":"No external source supports the illustrative unit costs. No observed city outcome dataset is included. Proposal passages and confirmed inputs establish scope, not empirical effects."}</p>{result.sources.map(s=><p key={s.url}><a className="text-link" href={s.url} target="_blank" rel="noreferrer">{s.title}</a></p>)}<p>{result.input.proposal.evidence.length} linked source passages remain attached to the confirmed proposal.</p></article><aside className="card report-controls"><h3>A brief you can share</h3><p>Download a real, paginated PDF with the complete scenario comparison. The server validates inputs and recalculates every number at download time.</p><Button onClick={download} disabled={busy}>{busy?<LoaderCircle size={16} className="spin"/>:<Download size={16}/>}Download PDF</Button>{done&&<p className="success-text" role="status">Decision brief downloaded.</p>}<div className="report-checklist">{["Scope and input assumptions","Scenario costs and ranges","Qualitative tradeoff review","Limitations and next steps","Model version and timestamp"].map(item=><span key={item}><CheckCircle2 size={13}/>{item}</span>)}</div></aside></div></>}</>;
+export default function ReportsPage() {
+  const { active } = useWorkspace();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [done, setDone] = useState(false);
+  const result = active?.result;
+  async function download() {
+    if (!result) return;
+    setBusy(true);
+    setError("");
+    setDone(false);
+    try {
+      const response = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(result.input),
+      });
+      if (!response.ok) {
+        const data = await readAPIJSON(response);
+        throw new Error(data.error ?? "Report could not be generated.");
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "civicdt-decision-brief.pdf";
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      setDone(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Report generation failed.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <>
+      <PageHeading
+        eyebrow="DECISION BRIEF"
+        title="The evidence, together."
+        description="A neutral record of scope, assumptions, costs, tradeoffs, and next steps."
+      />
+      {!result ? (
+        <EmptyState />
+      ) : (
+        <>
+          <EvidenceNotice basis={result.input.assumptionBasis} />
+          {error && (
+            <div className="alert error" role="alert">
+              {error}
+            </div>
+          )}
+          <div className="report-layout">
+            <article className="card report-document">
+              <header className="report-header">
+                <p className="eyebrow">
+                  CIVICDT · INFRASTRUCTURE DECISION BRIEF
+                </p>
+                <h2>{result.input.proposal.title}</h2>
+                <p>{result.input.proposal.location}</p>
+                <div className="report-meta">
+                  <span>Model: {result.modelVersion}</span>
+                  <span>
+                    Analysis:{" "}
+                    {new Date(result.generatedAt).toLocaleString("en-US", {
+                      timeZone: "America/Los_Angeles",
+                    })}{" "}
+                    Pacific
+                  </span>
+                  <span>Input basis: {result.input.assumptionBasis}</span>
+                </div>
+              </header>
+              <h3>Executive summary</h3>
+              <p className="report-summary">{result.summary}</p>
+              <h3>Scenario comparison · incremental USD</h3>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Scenario</th>
+                      <th>Capital</th>
+                      <th>Annual maintenance</th>
+                      <th>
+                        {result.input.assumptions.horizonYears}-year total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.scenarios.map((s) => (
+                      <tr key={s.id}>
+                        <td>{s.name}</td>
+                        <td>{formatMoney(s.capitalCost)}</td>
+                        <td>{formatMoney(s.annualMaintenance)}</td>
+                        <td>{formatMoney(s.lifecycleCost)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Baseline zero means no new intervention spending. Existing city
+                spending is excluded. Horizon totals are undiscounted and
+                exclude financing, inflation, and asset renewals.
+              </p>
+              <h3>Input assumptions</h3>
+              <p>
+                Scope: {result.quantity} {result.unit}
+                {result.quantity !== 1 ? "s" : ""}. Budget:{" "}
+                {result.input.proposal.budget === null
+                  ? "not supplied"
+                  : formatMoney(result.input.proposal.budget)}
+                .
+              </p>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Assumption</th>
+                      <th>Value</th>
+                      <th>Unit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {assumptionFields.map((f) => (
+                      <tr key={f.key}>
+                        <td>{f.label}</td>
+                        <td>
+                          {result.input.assumptions[f.key].toLocaleString(
+                            "en-US",
+                          )}
+                        </td>
+                        <td>{f.unit.replace("unit", result.unit)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <h3>Sensitivity bounds</h3>
+              {result.scenarios
+                .filter((s) => s.id !== "baseline")
+                .map((s) => (
+                  <p key={s.id}>
+                    <strong>{s.name}</strong>: capital{" "}
+                    {formatMoney(s.capitalLow)}–{formatMoney(s.capitalHigh)};
+                    annual maintenance {formatMoney(s.maintenanceLow)}–
+                    {formatMoney(s.maintenanceHigh)}. These are cost scenarios,
+                    not statistical confidence intervals.
+                  </p>
+                ))}
+              <h3>Qualitative tradeoffs</h3>
+              {result.scenarios.map((s) => (
+                <section key={s.id}>
+                  <h3>{s.name}</h3>
+                  <p>{s.description}</p>
+                  <ul>
+                    {Object.entries(s.tradeoffs).map(([key, value]) => (
+                      <li key={key}>
+                        <strong className="capitalize">{key}: </strong>
+                        {value}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+              <h3>Quantitative limitations</h3>
+              <ul>
+                {result.limitations.map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ul>
+              <h3>Follow-up investigations</h3>
+              <ul>
+                {result.followUp.map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ul>
+              {result.input.climate && (
+                <ClimateAppendix input={result.input.climate} />
+              )}
+              <h3>Sources and traceability</h3>
+              <p>
+                {result.sources.length
+                  ? "References accompany the analysis."
+                  : "No external source supports the illustrative unit costs. No observed city outcome dataset is included. Proposal passages and confirmed inputs establish scope, not empirical effects."}
+              </p>
+              {result.sources.map((s) => (
+                <p key={s.url}>
+                  <a
+                    className="text-link"
+                    href={s.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {s.title}
+                  </a>
+                </p>
+              ))}
+              <p>
+                {result.input.proposal.evidence.length} linked source passages
+                remain attached to the confirmed proposal.
+              </p>
+            </article>
+            <aside className="card report-controls">
+              <h3>A brief you can share</h3>
+              <p>
+                Download a real, paginated PDF with the complete scenario
+                comparison. The server validates inputs and recalculates every
+                number at download time.
+              </p>
+              <Button onClick={download} disabled={busy}>
+                {busy ? (
+                  <LoaderCircle size={16} className="spin" />
+                ) : (
+                  <Download size={16} />
+                )}
+                Download PDF
+              </Button>
+              {done && (
+                <p className="success-text" role="status">
+                  Decision brief downloaded.
+                </p>
+              )}
+              <div className="report-checklist">
+                {[
+                  "Scope and input assumptions",
+                  "Scenario costs and ranges",
+                  "Qualitative tradeoff review",
+                  "Limitations and next steps",
+                  "Model version and timestamp",
+                ].map((item) => (
+                  <span key={item}>
+                    <CheckCircle2 size={13} />
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </aside>
+          </div>
+        </>
+      )}
+    </>
+  );
 }

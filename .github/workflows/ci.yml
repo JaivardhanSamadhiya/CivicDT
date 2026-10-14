@@ -2,7 +2,7 @@ name: CivicDT checks
 
 on:
   push:
-    branches: [main]
+    branches: [main, y4e-climate]
   pull_request:
 
 jobs:

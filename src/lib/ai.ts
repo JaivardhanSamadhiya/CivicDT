@@ -2,11 +2,13 @@ import { z } from "zod";
 import { proposalSchema } from "./schema";
 
 /** Server-side extraction contract: no model-generated cost or impact fields. */
-export const aiExtractionSchema = proposalSchema.omit({
-  title: true,
-  missing: true,
-  sourceText: true,
-}).strict();
+export const aiExtractionSchema = proposalSchema
+  .omit({
+    title: true,
+    missing: true,
+    sourceText: true,
+  })
+  .strict();
 export type AIExtraction = z.infer<typeof aiExtractionSchema>;
 
 export interface ExtractionProvider {
@@ -19,9 +21,21 @@ const nullableNumber = { type: ["number", "null"] };
 const outputSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["type", "location", "distanceMiles", "crossingCount", "budget", "changes", "objectives", "evidence"],
+  required: [
+    "type",
+    "location",
+    "distanceMiles",
+    "crossingCount",
+    "budget",
+    "changes",
+    "objectives",
+    "evidence",
+  ],
   properties: {
-    type: { type: ["string", "null"], enum: ["bike-lane", "bus-priority", "pedestrian", null] },
+    type: {
+      type: ["string", "null"],
+      enum: ["bike-lane", "bus-priority", "pedestrian", null],
+    },
     location: nullableString,
     distanceMiles: nullableNumber,
     crossingCount: { type: ["integer", "null"] },
@@ -50,8 +64,13 @@ const outputSchema = {
  * This module is imported only by server routes, never by client components.
  */
 export function getExtractionProvider(): ExtractionProvider | null {
-  if (typeof window !== "undefined") throw new Error("AI extraction is available on the server only.");
-  if (process.env.AI_PROVIDER !== "openai" || !process.env.OPENAI_API_KEY?.trim()) return null;
+  if (typeof window !== "undefined")
+    throw new Error("AI extraction is available on the server only.");
+  if (
+    process.env.AI_PROVIDER !== "openai" ||
+    !process.env.OPENAI_API_KEY?.trim()
+  )
+    return null;
   const apiKey = process.env.OPENAI_API_KEY.trim();
   const model = process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
   return {
@@ -59,7 +78,10 @@ export function getExtractionProvider(): ExtractionProvider | null {
     async extract(text: string): Promise<unknown> {
       const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
         signal: AbortSignal.timeout(25_000),
         body: JSON.stringify({
           model,
@@ -76,26 +98,50 @@ export function getExtractionProvider(): ExtractionProvider | null {
             "No cost estimates, safety impacts, recommendations, or quantitative results are permitted in this extraction.",
           ].join(" "),
           input: [{ role: "user", content: [{ type: "input_text", text }] }],
-          text: { format: { type: "json_schema", name: "civicdt_proposal_facts", strict: true, schema: outputSchema } },
+          text: {
+            format: {
+              type: "json_schema",
+              name: "civicdt_proposal_facts",
+              strict: true,
+              schema: outputSchema,
+            },
+          },
         }),
       });
       // Do not propagate provider payloads, credentials, or raw error messages.
-      if (!response.ok) throw new Error("The extraction provider is unavailable.");
+      if (!response.ok)
+        throw new Error("The extraction provider is unavailable.");
       const body: unknown = await response.json();
-      const envelope = z.object({
-        status: z.literal("completed"),
-        output: z.array(z.object({
-          type: z.string(),
-          content: z.array(z.object({ type: z.string(), text: z.string().optional() })).optional(),
-        })),
-      }).safeParse(body);
-      if (!envelope.success) throw new Error("The extraction provider returned an incomplete response.");
-      const outputs = envelope.data.output.flatMap(item => item.content ?? []).filter(item => item.type === "output_text");
-      if (outputs.length !== 1 || !outputs[0].text) throw new Error("The extraction provider did not return usable facts.");
+      const envelope = z
+        .object({
+          status: z.literal("completed"),
+          output: z.array(
+            z.object({
+              type: z.string(),
+              content: z
+                .array(
+                  z.object({ type: z.string(), text: z.string().optional() }),
+                )
+                .optional(),
+            }),
+          ),
+        })
+        .safeParse(body);
+      if (!envelope.success)
+        throw new Error(
+          "The extraction provider returned an incomplete response.",
+        );
+      const outputs = envelope.data.output
+        .flatMap((item) => item.content ?? [])
+        .filter((item) => item.type === "output_text");
+      if (outputs.length !== 1 || !outputs[0].text)
+        throw new Error("The extraction provider did not return usable facts.");
       try {
         return JSON.parse(outputs[0].text);
       } catch {
-        throw new Error("The extraction provider did not return validated JSON.");
+        throw new Error(
+          "The extraction provider did not return validated JSON.",
+        );
       }
     },
   };
